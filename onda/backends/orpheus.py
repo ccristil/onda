@@ -71,7 +71,8 @@ class OrpheusBackend:
             from snac import SNAC
 
             snac_dir = self.model_dir / "snac_24khz"
-            self._snac = SNAC.from_pretrained(str(snac_dir)).eval()
+            source = str(snac_dir) if snac_dir.is_dir() else "hubertsiuzdak/snac_24khz"
+            self._snac = SNAC.from_pretrained(source).eval()
         return self._snac
 
     def _stream_tokens(self, text: str):
