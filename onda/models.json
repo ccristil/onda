@@ -22,5 +22,45 @@
     "config_url": "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/en/en_US/ryan/high/en_US-ryan-high.onnx.json",
     "size_mb": 100,
     "description": "High quality. Slower synthesis."
+  },
+  {
+    "name": "en_US-ljspeech-high",
+    "backend": "piper",
+    "onnx_url": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/ljspeech/high/en_US-ljspeech-high.onnx",
+    "config_url": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/ljspeech/high/en_US-ljspeech-high.onnx.json",
+    "size_mb": 114,
+    "description": "Female, high quality, neutral American accent."
+  },
+  {
+    "name": "en_GB-alan-medium",
+    "backend": "piper",
+    "onnx_url": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_GB/alan/medium/en_GB-alan-medium.onnx",
+    "config_url": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_GB/alan/medium/en_GB-alan-medium.onnx.json",
+    "size_mb": 61,
+    "description": "Male, medium quality, British accent."
+  },
+  {
+    "name": "en_GB-jenny_dioco-medium",
+    "backend": "piper",
+    "onnx_url": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_GB/jenny_dioco/medium/en_GB-jenny_dioco-medium.onnx",
+    "config_url": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_GB/jenny_dioco/medium/en_GB-jenny_dioco-medium.onnx.json",
+    "size_mb": 50,
+    "description": "Female, medium quality, British accent."
+  },
+  {
+    "name": "es_ES-davefx-medium",
+    "backend": "piper",
+    "onnx_url": "https://huggingface.co/rhasspy/piper-voices/resolve/main/es/es_ES/davefx/medium/es_ES-davefx-medium.onnx",
+    "config_url": "https://huggingface.co/rhasspy/piper-voices/resolve/main/es/es_ES/davefx/medium/es_ES-davefx-medium.onnx.json",
+    "size_mb": 67,
+    "description": "Male, medium quality, Spanish (Spain)."
+  },
+  {
+    "name": "kokoro/en-v1",
+    "backend": "kokoro",
+    "onnx_url": "",
+    "config_url": "",
+    "size_mb": 326,
+    "description": "High quality, multiple voices (af_heart, af_bella, am_adam, bm_george, bf_emma). Requires: pip install onda[kokoro]."
   }
 ]
