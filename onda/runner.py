@@ -43,7 +43,8 @@ def run(model_name: str, text: str, output_path: Path | None = None) -> None:
         raise SystemExit(1)
 
     backend = _load_backend(model)
-    chunks = chunk_text(text)
+    max_chars = getattr(backend, "chunk_chars", 500)
+    chunks = chunk_text(text, max_chars)
 
     if output_path:
         arrays: list[np.ndarray] = []

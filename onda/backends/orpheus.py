@@ -40,6 +40,7 @@ def _token_text_to_code(token_text: str, index: int) -> int | None:
 class OrpheusBackend:
     model_dir: Path
     voice: str = "tara"
+    chunk_chars: int = 150  # kept small so each chunk fits in max_tokens budget
     _llm: object = field(default=None, init=False, repr=False)
     _snac: object = field(default=None, init=False, repr=False)
 
