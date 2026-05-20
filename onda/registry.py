@@ -12,10 +12,11 @@ ONDA_DIR = Path.home() / ".onda"
 class ModelEntry:
     name: str
     backend: str
-    onnx_url: str
-    config_url: str
     size_mb: int
     description: str
+    onnx_url: str = ""
+    config_url: str = ""
+    gguf_url: str = ""
 
 
 def load_registry() -> list[ModelEntry]:
@@ -39,8 +40,9 @@ def is_downloaded(name: str) -> bool:
     entry = get_model(name)
     if entry is None:
         return False
-    if entry.backend == "kokoro":
-        d = model_dir(name)
-        return (d / "kokoro-v1.0.onnx").exists() and (d / "voices-v1.0.bin").exists()
     d = model_dir(name)
+    if entry.backend == "kokoro":
+        return (d / "kokoro-v1.0.onnx").exists() and (d / "voices-v1.0.bin").exists()
+    if entry.backend == "orpheus":
+        return any(d.glob("*.gguf"))
     return (d / f"{name}.onnx").exists() and (d / f"{name}.onnx.json").exists()

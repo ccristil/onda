@@ -69,6 +69,8 @@ def pull_model(model: ModelEntry) -> None:
         _pull_piper_model(model)
     elif model.backend == "kokoro":
         _pull_kokoro_model(model)
+    elif model.backend == "orpheus":
+        _pull_orpheus_model(model)
     else:
         raise RuntimeError(f"Unknown backend '{model.backend}' for model '{model.name}'")
 
@@ -110,6 +112,26 @@ def _pull_kokoro_model(model: ModelEntry) -> None:
         model.config_url,
         dest / "voices-v1.0.bin",
         description="Downloading voices-v1.0.bin",
+    )
+
+
+def _pull_orpheus_model(model: ModelEntry) -> None:
+    try:
+        import llama_cpp  # noqa: F401
+    except ImportError:
+        Console().print(
+            "[yellow]llama-cpp-python is not installed.[/] Run:\n\n"
+            "  pip install 'onda\\[orpheus]'\n"
+        )
+        raise typer.Exit(1)
+
+    dest = ONDA_DIR / "models" / model.name
+    dest.mkdir(parents=True, exist_ok=True)
+    filename = model.gguf_url.split("/")[-1]
+    _stream_to_file(
+        model.gguf_url,
+        dest / filename,
+        description=f"Downloading {filename}",
     )
 
 

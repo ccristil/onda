@@ -62,5 +62,12 @@
     "config_url": "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin",
     "size_mb": 326,
     "description": "High quality, multiple voices (af_heart, af_bella, am_adam, bm_george, bf_emma). Requires: pip install 'onda[kokoro]'."
+  },
+  {
+    "name": "orpheus/3b",
+    "backend": "orpheus",
+    "gguf_url": "https://huggingface.co/isaiahbjork/orpheus-3b-0.1-ft-Q4_K_M-GGUF/resolve/main/orpheus-3b-0.1-ft-q4_k_m.gguf",
+    "size_mb": 2360,
+    "description": "Expressive LLM-based TTS with emotion tags (<laugh>, <sigh>, <chuckle>). Requires: pip install 'onda[orpheus]'."
   }
 ]

@@ -19,6 +19,9 @@ def _load_backend(model: ModelEntry):
     if model.backend == "kokoro":
         from onda.backends.kokoro import load
         return load(d)
+    if model.backend == "orpheus":
+        from onda.backends.orpheus import load
+        return load(d)
     raise ValueError(f"Unknown backend: {model.backend}")
 
 
