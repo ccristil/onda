@@ -95,7 +95,7 @@ def _pull_kokoro_model(model: ModelEntry) -> None:
     except ImportError:
         Console().print(
             "[yellow]kokoro is not installed.[/] Run:\n\n"
-            "  pip install onda[kokoro]\n"
+            "  pip install onda\\[kokoro]\n"
         )
         raise typer.Exit(1)
 
