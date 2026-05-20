@@ -1,6 +1,6 @@
 import pytest
 from pathlib import Path
-from onda.utils import chunk_text, read_text_file, play_wav
+from onda.utils import chunk_text, read_text_file, play_wav, fetch_url_text
 
 
 def test_chunk_empty_string():
@@ -77,3 +77,30 @@ def test_play_wav_calls_sounddevice(tmp_path, mocker):
 
     mock_play.assert_called_once()
     mock_wait.assert_called_once()
+
+
+def _mock_trafilatura(mocker, fetch_return, extract_return=None):
+    """Inject a fake trafilatura into sys.modules (it may not be installed yet)."""
+    mock = mocker.MagicMock()
+    mock.fetch_url.return_value = fetch_return
+    mock.extract.return_value = extract_return
+    mocker.patch.dict("sys.modules", {"trafilatura": mock})
+    return mock
+
+
+def test_fetch_url_text_returns_extracted_content(mocker):
+    _mock_trafilatura(mocker, fetch_return="<html>article</html>", extract_return="  Article body text.  ")
+    result = fetch_url_text("https://example.com/article")
+    assert result == "Article body text."
+
+
+def test_fetch_url_text_raises_on_failed_fetch(mocker):
+    _mock_trafilatura(mocker, fetch_return=None)
+    with pytest.raises(RuntimeError, match="Could not fetch URL"):
+        fetch_url_text("https://unreachable.invalid")
+
+
+def test_fetch_url_text_raises_on_no_extractable_content(mocker):
+    _mock_trafilatura(mocker, fetch_return="<html></html>", extract_return=None)
+    with pytest.raises(RuntimeError, match="No readable content found"):
+        fetch_url_text("https://example.com/login-wall")

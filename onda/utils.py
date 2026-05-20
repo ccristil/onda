@@ -50,6 +50,18 @@ def read_text_file(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
+def fetch_url_text(url: str) -> str:
+    """Fetch a URL and extract its main article text."""
+    import trafilatura
+    html = trafilatura.fetch_url(url)
+    if html is None:
+        raise RuntimeError("Could not fetch URL. Check your connection or the URL and try again.")
+    text = trafilatura.extract(html)
+    if text is None:
+        raise RuntimeError("No readable content found. The page may be paywalled, require login, or have no extractable text.")
+    return text.strip()
+
+
 def play_wav(path: Path) -> None:
     """Play a WAV file synchronously."""
     data, samplerate = sf.read(str(path))

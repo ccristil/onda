@@ -106,6 +106,7 @@ def run(
     model: Optional[str] = typer.Argument(None, help="Model name to use."),
     text: Optional[str] = typer.Argument(None, help="Text to speak."),
     file: Optional[Path] = typer.Option(None, "--file", "-f", help="Text file to speak."),
+    url: Optional[str] = typer.Option(None, "--url", "-u", help="URL to fetch and read aloud."),
     out: Optional[Path] = typer.Option(None, "--out", "-o", help="Save WAV instead of playing."),
 ) -> None:
     """Speak text using a local TTS model."""
@@ -131,10 +132,32 @@ def run(
             )
             raise typer.Exit(code=1)
 
-    if text and file:
-        raise typer.BadParameter("Provide either inline text or --file, not both.")
-    if not text and not file:
-        raise typer.BadParameter("Provide text or --file input.")
+    inputs = sum([bool(text), bool(file), bool(url)])
+    if inputs > 1:
+        console.print("[red]Please provide only one input: text, --file, or --url[/red]")
+        raise typer.Exit(code=1)
+    if inputs == 0:
+        raise typer.BadParameter("Provide text, --file, or --url input.")
 
-    content = read_text_file(file) if file else text
-    runner_run(model, content, output_path=out)
+    if file:
+        content = read_text_file(file)
+        runner_run(model, content, output_path=out)
+    elif url:
+        import trafilatura
+        try:
+            with console.status("[bold green]Fetching URL...[/bold green]"):
+                html = trafilatura.fetch_url(url)
+                if html is None:
+                    raise RuntimeError("Could not fetch URL. Check your connection or the URL and try again.")
+            with console.status("[bold green]Extracting text...[/bold green]"):
+                extracted = trafilatura.extract(html)
+                if extracted is None:
+                    raise RuntimeError("No readable content found. The page may be paywalled, require login, or have no extractable text.")
+                content = extracted.strip()
+        except RuntimeError as e:
+            console.print(f"[red]{e}[/red]")
+            raise typer.Exit(code=1)
+        with console.status("[bold green]Rendering audio...[/bold green]"):
+            runner_run(model, content, output_path=out)
+    else:
+        runner_run(model, text, output_path=out)
