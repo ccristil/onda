@@ -31,14 +31,17 @@ onda list
 # Download a model
 onda pull en_US-amy-low
 
-# Speak inline text
-onda run en_US-amy-low "Hello, this is onda."
+# Set a default model (so you don't have to type it every time)
+onda default en_US-amy-low
+
+# Speak inline text (uses default model)
+onda run "Hello, this is onda."
 
 # Speak from a file
-onda run en_US-amy-low --file notes.txt
+onda run --file notes.txt
 
 # Save to WAV instead of playing
-onda run en_US-amy-low "Save this." --out output.wav
+onda run "Save this." --out output.wav
 ```
 
 ---
@@ -51,9 +54,12 @@ onda run en_US-amy-low "Save this." --out output.wav
 | `onda pull <model>` | Download a model |
 | `onda remove <model>` | Delete a downloaded model |
 | `onda info <model>` | Show model details |
-| `onda run <model> [text]` | Speak inline text |
-| `onda run <model> --file <path>` | Speak from a `.txt` file |
-| `onda run <model> ... --out <path>` | Save audio as WAV instead of playing |
+| `onda default <model>` | Set the default model |
+| `onda default --show` | Print the current default model |
+| `onda default --clear` | Remove the default model |
+| `onda run [model] [text]` | Speak inline text (model optional if default is set) |
+| `onda run [model] --file <path>` | Speak from a `.txt` file |
+| `onda run ... --out <path>` | Save audio as WAV instead of playing |
 
 ---
 
