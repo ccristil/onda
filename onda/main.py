@@ -12,6 +12,27 @@ from rich.table import Table
 app = typer.Typer(name="onda", help="Ollama-style CLI for local TTS models.")
 console = Console()
 
+LOGO = """
+                     █████
+                    ░░███
+  ██████  ████████    ███████   ██████
+ ███░░███░░███░░███  ███░░███  ░░░░░███
+░███ ░███ ░███ ░███ ░███ ░███   ███████
+░███ ░███ ░███ ░███ ░███ ░███  ███░░███
+░░██████  ████ █████░░████████░░████████
+ ░░░░░░  ░░░░ ░░░░░  ░░░░░░░░  ░░░░░░░░
+"""
+
+
+@app.callback(invoke_without_command=True)
+def _startup(ctx: typer.Context) -> None:
+    from onda.config import should_show_logo, mark_logo_shown
+    if should_show_logo():
+        console.print(LOGO, style="#7B2FBE")
+        mark_logo_shown()
+    if ctx.invoked_subcommand is None:
+        console.print(ctx.get_help())
+
 
 @app.command(name="list")
 def list_models() -> None:

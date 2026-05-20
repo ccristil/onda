@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from datetime import date
 from typing import Optional
 
 from onda.registry import ONDA_DIR
@@ -34,4 +35,14 @@ def set_default_model(name: str) -> None:
 def clear_default_model() -> None:
     data = _read_config()
     data.pop("default_model", None)
+    _write_config(data)
+
+
+def should_show_logo() -> bool:
+    return _read_config().get("last_logo_date") != str(date.today())
+
+
+def mark_logo_shown() -> None:
+    data = _read_config()
+    data["last_logo_date"] = str(date.today())
     _write_config(data)
