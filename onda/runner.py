@@ -52,5 +52,14 @@ def run(model_name: str, text: str, output_path: Path | None = None) -> None:
         combined = np.concatenate(arrays)
         sf.write(str(output_path), combined, samplerate)
     else:
+        import sounddevice as sd
+        arrays: list[np.ndarray] = []
+        samplerate: int | None = None
         for chunk in chunks:
-            backend.speak(chunk, output_path=None)
+            audio, sr = backend.synthesize_audio(chunk)
+            arrays.append(audio)
+            samplerate = sr
+        if arrays and samplerate:
+            combined = np.concatenate(arrays)
+            sd.play(combined, samplerate)
+            sd.wait()

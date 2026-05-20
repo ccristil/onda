@@ -23,15 +23,19 @@ class PiperBackend:
             self._voice = PiperVoice.load(str(model_file))
         return self._voice
 
-    def speak(self, text: str, output_path: Path | None = None) -> None:
+    def synthesize_audio(self, text: str) -> tuple[np.ndarray, int]:
+        """Return (audio_array, sample_rate) without playing or saving."""
         voice = self._get_voice()
         chunks = list(voice.synthesize(text))
         if not chunks:
-            return
-
-        # Concatenate all audio chunks
+            return np.array([]), 22050
         audio = np.concatenate([c.audio_float_array for c in chunks])
-        sample_rate = chunks[0].sample_rate
+        return audio, chunks[0].sample_rate
+
+    def speak(self, text: str, output_path: Path | None = None) -> None:
+        audio, sample_rate = self.synthesize_audio(text)
+        if audio.size == 0:
+            return
 
         if output_path:
             sf.write(str(output_path), audio, sample_rate)
