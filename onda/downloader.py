@@ -9,6 +9,8 @@ import tempfile
 from pathlib import Path
 
 import httpx
+import typer
+from rich.console import Console
 from rich.progress import Progress, BarColumn, DownloadColumn, TransferSpeedColumn
 
 from onda.registry import ModelEntry, ONDA_DIR
@@ -62,12 +64,19 @@ def get_piper_binary() -> Path:
 
 
 def pull_model(model: ModelEntry) -> None:
-    """Download model files and piper binary to ~/.onda/models/<name>/."""
-    get_piper_binary()
+    """Download model files to ~/.onda/models/<name>/."""
+    if model.backend == "piper":
+        _pull_piper_model(model)
+    elif model.backend == "kokoro":
+        _pull_kokoro_model(model)
+    else:
+        raise RuntimeError(f"Unknown backend '{model.backend}' for model '{model.name}'")
 
+
+def _pull_piper_model(model: ModelEntry) -> None:
+    get_piper_binary()
     dest = ONDA_DIR / "models" / model.name
     dest.mkdir(parents=True, exist_ok=True)
-
     _stream_to_file(
         model.onnx_url,
         dest / f"{model.name}.onnx",
@@ -78,6 +87,17 @@ def pull_model(model: ModelEntry) -> None:
         dest / f"{model.name}.onnx.json",
         description=f"Downloading {model.name}.onnx.json",
     )
+
+
+def _pull_kokoro_model(model: ModelEntry) -> None:
+    try:
+        import kokoro  # noqa: F401
+    except ImportError:
+        Console().print(
+            "[yellow]kokoro is not installed.[/] Run:\n\n"
+            "  pip install onda[kokoro]\n"
+        )
+        raise typer.Exit(1)
 
 
 def _stream_to_file(url: str, dest: Path, description: str) -> None:

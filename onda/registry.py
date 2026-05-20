@@ -36,5 +36,14 @@ def model_dir(name: str) -> Path:
 
 
 def is_downloaded(name: str) -> bool:
+    entry = get_model(name)
+    if entry is None:
+        return False
+    if entry.backend == "kokoro":
+        try:
+            import kokoro  # noqa: F401
+            return True
+        except ImportError:
+            return False
     d = model_dir(name)
     return (d / f"{name}.onnx").exists() and (d / f"{name}.onnx.json").exists()
