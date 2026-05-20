@@ -45,23 +45,33 @@ class OrpheusBackend:
 
     def _get_llm(self):
         if self._llm is None:
+            import os
             from llama_cpp import Llama
 
             gguf_path = next(self.model_dir.glob("*.gguf"))
-            self._llm = Llama(
-                model_path=str(gguf_path),
-                n_gpu_layers=-1,
-                n_ctx=4096,
-                verbose=False,
-                batch_size=1,
-            )
+            devnull_fd = os.open(os.devnull, os.O_WRONLY)
+            saved_fd = os.dup(2)
+            os.dup2(devnull_fd, 2)
+            os.close(devnull_fd)
+            try:
+                self._llm = Llama(
+                    model_path=str(gguf_path),
+                    n_gpu_layers=-1,
+                    n_ctx=4096,
+                    verbose=False,
+                    batch_size=1,
+                )
+            finally:
+                os.dup2(saved_fd, 2)
+                os.close(saved_fd)
         return self._llm
 
     def _get_snac(self):
         if self._snac is None:
             from snac import SNAC
 
-            self._snac = SNAC.from_pretrained("hubertsiuzdak/snac_24khz").eval()
+            snac_dir = self.model_dir / "snac_24khz"
+            self._snac = SNAC.from_pretrained(str(snac_dir)).eval()
         return self._snac
 
     def _stream_tokens(self, text: str):

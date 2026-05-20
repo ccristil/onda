@@ -128,11 +128,28 @@ def _pull_orpheus_model(model: ModelEntry) -> None:
     dest = ONDA_DIR / "models" / model.name
     dest.mkdir(parents=True, exist_ok=True)
     filename = model.gguf_url.split("/")[-1]
-    _stream_to_file(
-        model.gguf_url,
-        dest / filename,
-        description=f"Downloading {filename}",
-    )
+    gguf_path = dest / filename
+    if gguf_path.exists():
+        Console().print(f"[dim]{filename} already exists, skipping.[/]")
+    else:
+        _stream_to_file(
+            model.gguf_url,
+            gguf_path,
+            description=f"Downloading {filename}",
+        )
+
+    snac_dir = dest / "snac_24khz"
+    if not snac_dir.exists():
+        try:
+            from huggingface_hub import snapshot_download
+        except ImportError:
+            Console().print(
+                "[yellow]huggingface-hub is not installed.[/] Run:\n\n"
+                "  pip install 'onda\\[orpheus]'\n"
+            )
+            raise typer.Exit(1)
+        Console().print("Downloading SNAC decoder (hubertsiuzdak/snac_24khz)...")
+        snapshot_download(repo_id="hubertsiuzdak/snac_24khz", local_dir=str(snac_dir))
 
 
 def _stream_to_file(url: str, dest: Path, description: str) -> None:
