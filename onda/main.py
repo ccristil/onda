@@ -113,6 +113,15 @@ def run(
     from onda.runner import run as runner_run
     from onda.config import get_default_model
 
+    if model is not None:
+        from onda.registry import get_model as _get_model
+        if _get_model(model) is None:
+            # First arg isn't a model name — treat it as text, use default
+            if text is not None:
+                raise typer.BadParameter("Provide either inline text or --file, not both.")
+            text = model
+            model = None
+
     if model is None:
         model = get_default_model()
         if model is None:
