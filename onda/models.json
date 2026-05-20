@@ -1,0 +1,26 @@
+[
+  {
+    "name": "en_US-amy-low",
+    "backend": "piper",
+    "onnx_url": "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/en/en_US/amy/low/en_US-amy-low.onnx",
+    "config_url": "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/en/en_US/amy/low/en_US-amy-low.onnx.json",
+    "size_mb": 5,
+    "description": "Fast and lightweight. Good for quick tasks."
+  },
+  {
+    "name": "en_US-lessac-medium",
+    "backend": "piper",
+    "onnx_url": "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/en/en_US/lessac/medium/en_US-lessac-medium.onnx",
+    "config_url": "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/en/en_US/lessac/medium/en_US-lessac-medium.onnx.json",
+    "size_mb": 63,
+    "description": "Balanced quality and speed. Recommended default."
+  },
+  {
+    "name": "en_US-ryan-high",
+    "backend": "piper",
+    "onnx_url": "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/en/en_US/ryan/high/en_US-ryan-high.onnx",
+    "config_url": "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/en/en_US/ryan/high/en_US-ryan-high.onnx.json",
+    "size_mb": 100,
+    "description": "High quality. Slower synthesis."
+  }
+]
