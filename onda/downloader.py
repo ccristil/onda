@@ -43,7 +43,7 @@ def get_piper_binary() -> Path:
         _stream_to_file(url, tar_path, description="Downloading piper binary")
 
         with tarfile.open(tar_path, "r:gz") as tf:
-            tf.extractall(tmpdir)
+            tf.extractall(tmpdir, filter="data")
 
         extracted_bin = Path(tmpdir) / "piper" / "piper"
         shutil.copy2(extracted_bin, bin_path)
