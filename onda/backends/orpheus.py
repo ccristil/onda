@@ -87,6 +87,8 @@ class OrpheusBackend:
             top_p=0.95,
             top_k=40,
             min_p=0.05,
+            repeat_penalty=1.1,
+            stop=["<|eot_id|>"],
         ):
             yield chunk["choices"][0]["text"]
 
@@ -94,11 +96,19 @@ class OrpheusBackend:
         """Parse token text stream into a flat list of valid SNAC codes."""
         codes: list[int] = []
         index = 0
+        consecutive_non_audio = 0
         for token_text in token_gen:
             code = _token_text_to_code(token_text, index)
             if code is not None and code > 0:
                 codes.append(code)
                 index += 1
+                consecutive_non_audio = 0
+            else:
+                consecutive_non_audio += 1
+                # Once we have at least one complete frame and see 8+ consecutive
+                # non-audio tokens, the model has finished generating audio.
+                if len(codes) >= 7 and consecutive_non_audio >= 8:
+                    break
         return codes
 
     def _decode_codes(self, codes: list[int]) -> np.ndarray:
