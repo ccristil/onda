@@ -22,19 +22,19 @@ PIPER_RELEASES_BASE = (
 def _piper_asset_name(system: str, machine: str) -> str:
     """Return the piper release tarball filename for the current platform."""
     if system == "Darwin":
-        if machine in ("arm64", "aarch64"):
-            return "piper_macos_aarch64.tar.gz"
+        # No native arm64 release in 2023.11.14-2 — x64 runs via Rosetta on Apple Silicon
         return "piper_macos_x64.tar.gz"
     raise RuntimeError(f"Unsupported platform: {system} {machine}")
 
 
 def get_piper_binary() -> Path:
     """Return path to piper binary, downloading it if needed."""
-    bin_path = ONDA_DIR / "bin" / "piper"
+    bin_dir = ONDA_DIR / "bin"
+    bin_path = bin_dir / "piper"
     if bin_path.exists():
         return bin_path
 
-    bin_path.parent.mkdir(parents=True, exist_ok=True)
+    bin_dir.mkdir(parents=True, exist_ok=True)
     asset = _piper_asset_name(platform.system(), platform.machine())
     url = f"{PIPER_RELEASES_BASE}/{asset}"
 
@@ -45,8 +45,17 @@ def get_piper_binary() -> Path:
         with tarfile.open(tar_path, "r:gz") as tf:
             tf.extractall(tmpdir, filter="data")
 
-        extracted_bin = Path(tmpdir) / "piper" / "piper"
-        shutil.copy2(extracted_bin, bin_path)
+        # Copy entire piper/ bundle (binary + bundled libs + espeak-ng-data) into bin_dir
+        # so the binary can find its @rpath dependencies at runtime.
+        piper_bundle = Path(tmpdir) / "piper"
+        for item in piper_bundle.iterdir():
+            dest = bin_dir / item.name
+            if item.is_dir():
+                if dest.exists():
+                    shutil.rmtree(dest)
+                shutil.copytree(item, dest)
+            else:
+                shutil.copy2(item, dest)
 
     bin_path.chmod(bin_path.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
     return bin_path

@@ -1,39 +1,48 @@
 from __future__ import annotations
 
 import shutil
-import subprocess
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
-from onda.downloader import get_piper_binary
+import numpy as np
+import soundfile as sf
+
 from onda.utils import play_wav
 
 
 @dataclass
 class PiperBackend:
     model_dir: Path
+    _voice: object = None  # piper.PiperVoice, loaded lazily
+
+    def _get_voice(self):
+        if self._voice is None:
+            from piper import PiperVoice
+            model_file = next(self.model_dir.glob("*.onnx"))
+            self._voice = PiperVoice.load(str(model_file))
+        return self._voice
 
     def speak(self, text: str, output_path: Path | None = None) -> None:
-        piper_bin = get_piper_binary()
-        model_file = next(self.model_dir.glob("*.onnx"))
+        voice = self._get_voice()
+        chunks = list(voice.synthesize(text))
+        if not chunks:
+            return
 
-        with tempfile.TemporaryDirectory() as tmpdir:
-            tmp_wav = Path(tmpdir) / "output.wav"
-            subprocess.run(
-                [
-                    str(piper_bin),
-                    "--model", str(model_file),
-                    "--output_file", str(tmp_wav),
-                ],
-                input=text.encode(),
-                check=True,
-                capture_output=True,
-            )
-            if output_path:
-                shutil.copy2(tmp_wav, output_path)
-            else:
-                play_wav(tmp_wav)
+        # Concatenate all audio chunks
+        audio = np.concatenate([c.audio_float_array for c in chunks])
+        sample_rate = chunks[0].sample_rate
+
+        if output_path:
+            sf.write(str(output_path), audio, sample_rate)
+        else:
+            with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
+                tmp_path = Path(tmp.name)
+            try:
+                sf.write(str(tmp_path), audio, sample_rate)
+                play_wav(tmp_path)
+            finally:
+                tmp_path.unlink(missing_ok=True)
 
 
 def load(model_dir: Path) -> PiperBackend:

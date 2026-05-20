@@ -31,9 +31,10 @@ def _make_fake_tarball(tmp_path: Path) -> bytes:
 
 
 def test_piper_asset_name_arm64():
+    # No native arm64 release in 2023.11.14-2 — falls back to x64 (runs via Rosetta)
     name = _piper_asset_name("Darwin", "arm64")
-    assert "aarch64" in name or "arm64" in name
-    assert "apple" in name or "macos" in name
+    assert "x64" in name or "x86_64" in name
+    assert "macos" in name
 
 
 def test_piper_asset_name_x86():
