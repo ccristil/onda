@@ -150,10 +150,13 @@ def run(
                 if html is None:
                     raise RuntimeError("Could not fetch URL. Check your connection or the URL and try again.")
             with console.status("[bold green]Extracting text...[/bold green]"):
-                extracted = trafilatura.extract(html)
+                extracted = trafilatura.extract(html, include_tables=False, include_comments=False)
                 if extracted is None:
                     raise RuntimeError("No readable content found. The page may be paywalled, require login, or have no extractable text.")
-                content = extracted.strip()
+                import re
+                cleaned = re.sub(r'\[edit\]', '', extracted)
+                cleaned = re.sub(r'\[\d+\]', '', cleaned)
+                content = cleaned.strip()
         except RuntimeError as e:
             console.print(f"[red]{e}[/red]")
             raise typer.Exit(code=1)

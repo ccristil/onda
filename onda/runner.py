@@ -55,14 +55,36 @@ def run(model_name: str, text: str, output_path: Path | None = None) -> None:
         combined = np.concatenate(arrays)
         sf.write(str(output_path), combined, samplerate)
     else:
+        import queue
+        import threading
         import sounddevice as sd
-        arrays: list[np.ndarray] = []
-        samplerate: int | None = None
-        for chunk in chunks:
-            audio, sr = backend.synthesize_audio(chunk)
-            arrays.append(audio)
-            samplerate = sr
-        if arrays and samplerate:
-            combined = np.concatenate(arrays)
-            sd.play(combined, samplerate)
-            sd.wait()
+
+        audio_queue: queue.Queue = queue.Queue(maxsize=2)
+        exc_holder: list[BaseException] = []
+
+        def _producer() -> None:
+            try:
+                for chunk in chunks:
+                    audio, sr = backend.synthesize_audio(chunk)
+                    audio_queue.put((audio, sr))
+            except Exception as exc:
+                exc_holder.append(exc)
+            finally:
+                audio_queue.put(None)
+
+        producer_thread = threading.Thread(target=_producer, daemon=True)
+        producer_thread.start()
+
+        while True:
+            item = audio_queue.get()
+            if item is None:
+                break
+            audio, sr = item
+            if audio.size > 0:
+                sd.play(audio, sr)
+                sd.wait()
+
+        producer_thread.join()
+
+        if exc_holder:
+            raise exc_holder[0]
