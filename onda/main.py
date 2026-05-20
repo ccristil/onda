@@ -17,12 +17,15 @@ console = Console()
 def list_models() -> None:
     """Show available models and download status."""
     from onda.registry import load_registry, is_downloaded
+    from onda.config import get_default_model
 
     models = load_registry()
+    current_default = get_default_model()
     table = Table("Name", "Backend", "Size (MB)", "Status", show_header=True)
     for m in models:
         status = "[green]✓ Downloaded[/]" if is_downloaded(m.name) else "– Not downloaded"
-        table.add_row(m.name, m.backend, str(m.size_mb), status)
+        name_cell = f"{m.name} [green](default)[/green]" if m.name == current_default else m.name
+        table.add_row(name_cell, m.backend, str(m.size_mb), status)
     console.print(table)
 
 
@@ -69,9 +72,38 @@ def info(model: str = typer.Argument(..., help="Model name to inspect.")) -> Non
     console.print(Panel(content, title=f"[bold]{m.name}[/]"))
 
 
+@app.command(name="default")
+def set_default(
+    model: Optional[str] = typer.Argument(None, help="Model name to set as default."),
+    show: bool = typer.Option(False, "--show", help="Print the current default model."),
+    clear: bool = typer.Option(False, "--clear", help="Remove the default model."),
+) -> None:
+    """Get or set the default TTS model."""
+    from onda.registry import get_model
+    from onda.config import get_default_model, set_default_model, clear_default_model
+
+    if sum([bool(model), show, clear]) > 1:
+        raise typer.BadParameter("--show, --clear, and <model> are mutually exclusive.")
+
+    if show or (model is None and not clear):
+        current = get_default_model()
+        console.print(f"Default model: [bold]{current}[/bold]" if current else "No default model set.")
+        return
+
+    if clear:
+        clear_default_model()
+        console.print("Default model cleared.")
+        return
+
+    if get_model(model) is None:
+        raise typer.BadParameter(f"Model '{model}' not found in registry. Run: onda list")
+    set_default_model(model)
+    console.print(f"Default model set to: [bold]{model}[/bold]")
+
+
 @app.command()
 def run(
-    model: str = typer.Argument(..., help="Model name to use."),
+    model: Optional[str] = typer.Argument(None, help="Model name to use."),
     text: Optional[str] = typer.Argument(None, help="Text to speak."),
     file: Optional[Path] = typer.Option(None, "--file", "-f", help="Text file to speak."),
     out: Optional[Path] = typer.Option(None, "--out", "-o", help="Save WAV instead of playing."),
@@ -79,6 +111,16 @@ def run(
     """Speak text using a local TTS model."""
     from onda.utils import read_text_file
     from onda.runner import run as runner_run
+    from onda.config import get_default_model
+
+    if model is None:
+        model = get_default_model()
+        if model is None:
+            console.print(
+                "[red]No model specified and no default set.[/red] "
+                "Run: [bold]onda default <model>[/bold]"
+            )
+            raise typer.Exit(code=1)
 
     if text and file:
         raise typer.BadParameter("Provide either inline text or --file, not both.")
