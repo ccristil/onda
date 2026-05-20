@@ -91,13 +91,26 @@ def _pull_piper_model(model: ModelEntry) -> None:
 
 def _pull_kokoro_model(model: ModelEntry) -> None:
     try:
-        import kokoro  # noqa: F401
+        import kokoro_onnx  # noqa: F401
     except ImportError:
         Console().print(
-            "[yellow]kokoro is not installed.[/] Run:\n\n"
-            "  pip install onda\\[kokoro]\n"
+            "[yellow]kokoro-onnx is not installed.[/] Run:\n\n"
+            "  pip install 'onda\\[kokoro]'\n"
         )
         raise typer.Exit(1)
+
+    dest = ONDA_DIR / "models" / model.name
+    dest.mkdir(parents=True, exist_ok=True)
+    _stream_to_file(
+        model.onnx_url,
+        dest / "kokoro-v1.0.onnx",
+        description="Downloading kokoro-v1.0.onnx",
+    )
+    _stream_to_file(
+        model.config_url,
+        dest / "voices-v1.0.bin",
+        description="Downloading voices-v1.0.bin",
+    )
 
 
 def _stream_to_file(url: str, dest: Path, description: str) -> None:

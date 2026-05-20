@@ -18,7 +18,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-kokoro = ["kokoro", "espeak-ng"]
+kokoro = ["kokoro-onnx"]
 orpheus = ["llama-cpp-python", "snac"]
 docs = ["pymupdf", "python-docx"]
 dev = ["pytest>=8", "pytest-mock>=3"]

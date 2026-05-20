@@ -40,10 +40,7 @@ def is_downloaded(name: str) -> bool:
     if entry is None:
         return False
     if entry.backend == "kokoro":
-        try:
-            import kokoro  # noqa: F401
-            return True
-        except ImportError:
-            return False
+        d = model_dir(name)
+        return (d / "kokoro-v1.0.onnx").exists() and (d / "voices-v1.0.bin").exists()
     d = model_dir(name)
     return (d / f"{name}.onnx").exists() and (d / f"{name}.onnx.json").exists()
