@@ -30,16 +30,16 @@ def registry_with_amy(tmp_path, monkeypatch):
     return tmp_path
 
 
-def test_run_calls_speak_for_each_chunk(registry_with_amy, mocker):
+def test_run_streams_audio_for_each_chunk(registry_with_amy, mocker):
     mock_backend = MagicMock()
+    mock_backend.synthesize_audio.return_value = (np.zeros(100, dtype="float32"), 22050)
     mocker.patch("onda.runner._load_backend", return_value=mock_backend)
     mocker.patch("onda.runner.chunk_text", return_value=["chunk one", "chunk two"])
+    mocker.patch("sounddevice.OutputStream")  # MagicMock auto-supports __enter__/__exit__
 
     run("en_US-amy-low", "chunk one chunk two")
 
-    assert mock_backend.speak.call_count == 2
-    mock_backend.speak.assert_any_call("chunk one", output_path=None)
-    mock_backend.speak.assert_any_call("chunk two", output_path=None)
+    assert mock_backend.synthesize_audio.call_count == 2
 
 
 def test_run_raises_on_unknown_model(registry_with_amy):

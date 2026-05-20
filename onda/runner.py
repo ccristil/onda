@@ -59,7 +59,7 @@ def run(model_name: str, text: str, output_path: Path | None = None) -> None:
         import threading
         import sounddevice as sd
 
-        audio_queue: queue.Queue = queue.Queue(maxsize=2)
+        audio_queue: queue.Queue = queue.Queue(maxsize=4)
         exc_holder: list[BaseException] = []
 
         def _producer() -> None:
@@ -75,14 +75,20 @@ def run(model_name: str, text: str, output_path: Path | None = None) -> None:
         producer_thread = threading.Thread(target=_producer, daemon=True)
         producer_thread.start()
 
-        while True:
-            item = audio_queue.get()
-            if item is None:
-                break
-            audio, sr = item
-            if audio.size > 0:
-                sd.play(audio, sr)
-                sd.wait()
+        # Drain first item to learn sample rate before opening the stream.
+        first = audio_queue.get()
+        if first is not None:
+            first_audio, sr = first
+            with sd.OutputStream(samplerate=sr, channels=1, dtype="float32") as stream:
+                if first_audio.size > 0:
+                    stream.write(first_audio)
+                while True:
+                    item = audio_queue.get()
+                    if item is None:
+                        break
+                    audio, _ = item
+                    if audio.size > 0:
+                        stream.write(audio)
 
         producer_thread.join()
 
